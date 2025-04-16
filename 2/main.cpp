@@ -154,7 +154,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    cv::imwrite("ldr_image.jpg", global_tone_mapped);
+    // Convert to 8 bit RGB
+    cv::Mat ldr_image;
+    global_tone_mapped.convertTo(ldr_image, CV_16UC3, 255.0);
+    cv::imwrite("ldr_image.jpg", ldr_image);
+
+    // Gamma correction
+    cv::Mat gamma_corrected;
+    cv::pow(global_tone_mapped, 1.0 / 1.6, global_tone_mapped);
+    global_tone_mapped.convertTo(gamma_corrected, CV_16UC3, 255.0);
+    cv::imwrite("ldr_image_gamma_corrected.jpg", gamma_corrected);
 
     return EXIT_SUCCESS;
 }
