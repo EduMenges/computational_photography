@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
         string r_s, g_s, b_s;
 
         if (getline(ss, r_s, ' ') && getline(ss, g_s, ' ') && getline(ss, b_s)) {
-            curve.push_back({stod(r_s), stod(g_s), stod(b_s)});
+            curve.push_back({stod(b_s), stod(g_s), stod(r_s)});
         }
     }
 
@@ -126,7 +126,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    cv::imwrite("hdr_image.hdr", hdr_image);
+    cv::Mat hdr_f32_image;
+    hdr_image.convertTo(hdr_f32_image, CV_32FC3);
+    cv::imwrite("hdr_image.hdr", hdr_f32_image);
 
     // Luminance image
     cv::Mat luminance_image(size, CV_64FC1);
@@ -159,7 +161,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < size.height; ++i) {
         for (int j = 0; j < size.width; ++j) {
             double luminance = luminance_image.at<double>(i, j);
-            double scaled_luminance = ALPHA * luminance / average_luminance;
+            double scaled_luminance = (ALPHA / average_luminance) * luminance;
             double global_operator = scaled_luminance / (1 + scaled_luminance);
 
             double scale = luminance > 0.0 ? (global_operator / luminance) : 0.0;
@@ -175,7 +177,7 @@ int main(int argc, char *argv[]) {
 
     // Gamma correction
     cv::Mat gamma_corrected;
-    cv::pow(global_tone_mapped, 1.0 / 1.6, global_tone_mapped);
+    cv::pow(global_tone_mapped, 1.0 / 2.2, global_tone_mapped);
     global_tone_mapped.convertTo(gamma_corrected, CV_16UC3, 65535.0);
     cv::imwrite("ldr_image_gamma_corrected.png", gamma_corrected);
 
